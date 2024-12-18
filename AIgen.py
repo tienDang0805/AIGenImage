@@ -1,7 +1,7 @@
 import os
 import google.generativeai as genai
 
-genai.configure(api_key=os.environ['AIzaSyA9M-FbFjdW_jVbrC8zPYE0xfptJZkLMtc'])
+genai.configure(api_key=os.environ['AIzaSyCEphH-oXMWMGkNkWmiTfjvWS1QRjtSb1o'])
 
 imagen = genai.ImageGenerationModel("imagen-3.0-generate-001")
 
