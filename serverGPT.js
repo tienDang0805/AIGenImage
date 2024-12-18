@@ -54,11 +54,10 @@ app.post('/gpt-chat', async (req, res) => {
             "contents": chatHistory
         };
 
+
         console.log("Request to model:", JSON.stringify(requestBody, null, 2));
          // Delay request
-        await delay(1000); // Delay 1 second (có thể tăng lên nếu vẫn bị lỗi 429)
-
-        const result = await model.generateContent(requestBody);
+        const result = await model.generateContent("giờ Ngày tháng năm ở thành phố hồ chí minh hiện tại");
         console.log("result: ",result)
         const modelResponse = result.response.candidates[0].content.parts[0].text;
 
