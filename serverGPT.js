@@ -57,9 +57,10 @@ app.post('/gpt-chat', async (req, res) => {
 
         console.log("Request to model:", JSON.stringify(requestBody, null, 2));
          // Delay request
-        const result = await model.generateContent("giờ Ngày tháng năm ở thành phố hồ chí minh hiện tại");
+        const result = await model.generateContent(message);
         console.log("result: ",result)
-        const modelResponse = result.response.candidates[0].content.parts[0].text;
+        console.log(result.response.candidates[0].groundingMetadata);
+        const modelResponse = result.response.candidates[0].groundingMetadata;
 
         // Log result from model
         console.log("Model Response:", modelResponse);
