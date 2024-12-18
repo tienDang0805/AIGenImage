@@ -1,14 +1,11 @@
 import os
 import google.generativeai as genai
 
-genai.configure(api_key="AIzaSyCEphH-oXMWMGkNkWmiTfjvWS1QRjtSb1o")
+genai.configure(api_key="AIzaSyCEphH")
 
 # Check available models (optional)
-print("Available Models:")
-for model in genai.list_models(page_size=100):
-  print(model.name)
 
-imagen = genai.ImageGenerationModel("gemini-1.0-pro-vision-latest")
+imagen = genai.ImageGenerationModel("imagen-3.0-generate-001")
 
 try:
   result = imagen.generate_images(
