@@ -9,13 +9,13 @@ app.use(cors());
 // Middleware to parse JSON bodies
 app.use(express.json({ limit: '10mb' }));
 
-const genAI = new GoogleGenerativeAI("AIzaSyA9M-FbFjdW_jVbrC8zPYE0xfptJZkLMtc"); // Thay bằng API key của bạn
-// Define the model you wish to use (e.g., gemini-2.0-flash-exp)
+// Khởi tạo GoogleGenerativeAI với API key của bạn
+const genAI = new GoogleGenerativeAI("AIzaSyA9M-FbFjdW_jVbrC8zPYE0xfptJZkLMtc");
+
+// Model cấu hình sử dụng Google Search tools
 const model = genAI.getGenerativeModel(
     {
-        model: "models/gemini-2.0-flash-exp",
-         // Bỏ googleSearchRetrieval nếu không cần thiết
-        // If using grounding
+        model: "models/gemini-2.0-pro",
         tools: [
             {
                 googleSearchRetrieval: {
@@ -30,88 +30,85 @@ const model = genAI.getGenerativeModel(
     { apiVersion: "v1beta" },
 );
 
-// Function to add a delay
+// Hàm delay để tránh timeout request
 const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
-
+// Endpoint xử lý chat
 app.post('/gpt-chat', async (req, res) => {
-    const { chatHistory, message } = req.body;
+    const { message } = req.body;
 
-    // Log incoming request
-    console.log("Received /gpt-chat request:");
-    console.log("Chat History:", JSON.stringify(chatHistory, null, 2));
-    console.log("Message:", message);
+    console.log("\n--- Request Received ---");
+    console.log("Message:", message); // Log tin nhắn nhận được
 
     try {
-      
-         chatHistory.push({
-            "role": "user",
-            "parts": [{
-                "text": message
-            }]
-        });
-        const requestBody = {
-            "contents": chatHistory
-        };
-
-
-        console.log("Request to model:", JSON.stringify(requestBody, null, 2));
-         // Delay request
+        // Gửi request đến model
         const result = await model.generateContent(message);
-        console.log("result: ",result)
-        console.log(result.response.candidates[0].groundingMetadata);
-        const modelResponse = result.response.candidates[0].groundingMetadata;
 
-        // Log result from model
-        console.log("Model Response:", modelResponse);
+        console.log("\n--- Full Model Response ---");
+        console.log(JSON.stringify(result, null, 2)); // Log toàn bộ phản hồi từ model
 
-        res.json({ modelResponse });
+        // Trích xuất phản hồi từ model
+        const modelResponse = result.response.candidates[0].content.parts[0].text;
+        const groundingMetadata = result.response.candidates[0].groundingMetadata;
+
+        console.log("\n--- Model Response ---");
+        console.log("Text Response:", modelResponse); // Log nội dung phản hồi
+        console.log("Grounding Metadata:", groundingMetadata); // Log thông tin tìm kiếm trên Google
+
+        // Trả kết quả về client
+        res.json({ modelResponse, groundingMetadata });
     } catch (error) {
-        console.error('Error processing chat request:', error);
+        console.error('\nError processing chat request:', error);
         res.status(500).json({ error: 'Internal server error', details: error.message });
     }
 });
 
+// Endpoint xử lý chat với hình ảnh
 app.post('/gpt-chat-with-image', async (req, res) => {
-    const { chatHistory, message, image } = req.body;
+    const { message, image } = req.body;
 
-    // Log incoming request
-    console.log("Received /gpt-chat-with-image request:");
-    console.log("Chat History:", JSON.stringify(chatHistory, null, 2));
+    console.log("\n--- Request Received with Image ---");
     console.log("Message:", message);
-    console.log("Image:", image);
+    console.log("Image (base64):", image.substring(0, 50) + '...'); // Log 50 ký tự đầu của ảnh
 
     try {
-        chatHistory.push({
-            "role": "user",
-            "parts": [
-                image,
-                { "text": message }
-            ]
-        });
-
         const requestBody = {
-            "contents": chatHistory
+            contents: [
+                {
+                    role: "user",
+                    parts: [
+                        { inlineData: { mimeType: "image/jpeg", data: image } },
+                        { text: message }
+                    ]
+                }
+            ]
         };
-        console.log("Request to model:", JSON.stringify(requestBody, null, 2));
-        
-         // Delay request
-        await delay(1000); // Delay 1 second
 
+        console.log("\n--- Request Body Sent ---");
+        console.log(JSON.stringify(requestBody, null, 2));
+
+        // Gửi request đến model
+        await delay(1000); // Delay 1 giây
         const result = await model.generateContent(requestBody);
 
+        console.log("\n--- Full Model Response ---");
+        console.log(JSON.stringify(result, null, 2)); // Log toàn bộ phản hồi từ model
+
+        // Trích xuất phản hồi từ model
         const modelResponse = result.response.candidates[0].content.parts[0].text;
 
-        // Log result from model
-        console.log("Model Response:", modelResponse);
+        console.log("\n--- Model Response ---");
+        console.log("Text Response:", modelResponse); // Log nội dung phản hồi
 
+        // Trả kết quả về client
         res.json({ modelResponse });
     } catch (error) {
-        console.error('Error processing image chat request:', error);
+        console.error('\nError processing image chat request:', error);
         res.status(500).json({ error: 'Internal server error', details: error.message });
     }
 });
 
+// Khởi động server
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
 });
