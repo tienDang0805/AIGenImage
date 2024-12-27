@@ -6,7 +6,7 @@ const app = express();
 const port = 3000;
 
 // Thay thế bằng API Key thực tế của bạn
-const API_KEY = 'YOUR_API_KEY';  // Thay thế với API Key của bạn
+const API_KEY = 'AIzaSyA9M-FbFjdW_jVbrC8zPYE0xfptJZkLMtc';  // Thay thế với API Key của bạn
 const MODEL_ID = 'gemini-2.0-flash-exp';  // Thay thế với ID model của bạn
 const URL = `https://generativeai.googleapis.com/v1/models/${MODEL_ID}:generateContent`;
 
