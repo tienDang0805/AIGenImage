@@ -18,7 +18,7 @@ app.post('/gpt-chat', async (req, res) => {
   // Lấy prompt từ request body, nếu không có prompt thì sẽ sử dụng prompt mặc định
   const { chatHistory, message } = req.body;
   const prompt = message|| "What is the next total solar eclipse in the US?";
-
+    console.log(prompt)
   const payload = {
     contents: prompt,
     config: {
@@ -40,7 +40,9 @@ app.post('/gpt-chat', async (req, res) => {
 
     // Trả lại nội dung được tạo từ Google Generative AI
     const generatedText = response.data.candidates[0].content.parts[0].text;
+    console.log("generatedText: ", generatedText)
     const groundingMetadata = response.data.candidates[0].grounding_metadata;
+    console.log("groundingMetadata: ", groundingMetadata)
 
     // Gửi kết quả về client
     res.json({
