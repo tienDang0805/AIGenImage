@@ -1,30 +1,35 @@
+import os
 from google import genai
 from google.genai.types import Tool, GenerateContentConfig, GoogleSearch
 from flask import Flask, request, jsonify
 
-app = Flask(__name__)
+# Lấy API key từ biến môi trường
+API_KEY = os.getenv('GOOGLE_API_KEY')
+if not API_KEY:
+    raise ValueError("API key is not set in the environment variables")
 
-# Replace with your actual API key
-API_KEY = 'AIzaSyA9M-FbFjdW_jVbrC8zPYE0xfptJZkLMtc'  # Replace with your API key
-MODEL_ID = 'gemini-2.0-flash-exp'  # Replace with your model ID
+MODEL_ID = 'gemini-2.0-flash-exp'  # Model ID
 
-# Create a GenAI client
-client = genai.Client()
+# Tạo client GenAI
+client = genai.Client(api_key=API_KEY)
 
-# Define the Google Search tool
+# Định nghĩa công cụ Google Search
 google_search_tool = Tool(
     google_search=GoogleSearch()
 )
 
+# Khởi tạo Flask app
+app = Flask(__name__)
+
 @app.route('/gpt-chat', methods=['POST'])
 def gpt_chat():
     try:
-        # Get prompt from request body, or use a default one
+        # Nhận dữ liệu từ yêu cầu
         data = request.get_json()
         message = data.get('message', "What is the next total solar eclipse in the US?")
         chat_history = data.get('chatHistory', [])
-        
-        # Generate content using Google GenAI
+
+        # Gọi API để tạo nội dung
         response = client.models.generate_content(
             model=MODEL_ID,
             contents=message,
@@ -33,12 +38,12 @@ def gpt_chat():
                 response_modalities=["TEXT"]
             )
         )
-        
-        # Extract generated text
+
+        # Trích xuất nội dung phản hồi
         generated_text = response.candidates[0].content.parts[0].text
         grounding_metadata = response.candidates[0].grounding_metadata
-        
-        # Return the result
+
+        # Trả về kết quả dưới dạng JSON
         return jsonify({
             'generatedText': generated_text,
             'groundingMetadata': grounding_metadata or None
@@ -48,4 +53,4 @@ def gpt_chat():
         return jsonify({'error': 'Failed to generate content'}), 500
 
 if __name__ == '__main__':
-    app.run(port=3000)
+    app.run(host='0.0.0.0', port=3000)
