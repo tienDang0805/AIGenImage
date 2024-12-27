@@ -38,11 +38,22 @@ def gpt_chat():
             )
         )
 
-        # Ghi log toàn bộ phản hồi để debug
-        print("Full API Response:", response)
+        # Trích xuất dữ liệu dưới dạng dictionary
+        response_dict = {
+            "candidates": []
+        }
+        for candidate in response.candidates:
+            parts = []
+            for part in candidate.content.parts:
+                parts.append(part.text if hasattr(part, 'text') else str(part))
+            response_dict["candidates"].append({
+                "parts": parts,
+                "finish_reason": candidate.finish_reason,
+                "index": candidate.index
+            })
 
-        # Trả về nguyên bản phản hồi từ API dưới dạng JSON
-        return jsonify(response._asdict())  # Trả về tất cả dữ liệu của response
+        # Trả về dữ liệu raw JSON
+        return jsonify(response_dict)
 
     except Exception as e:
         print(f"Error calling Google Generative AI API: {e}")
