@@ -18,7 +18,7 @@ app.post('/gpt-chat', async (req, res) => {
   // Lấy prompt từ request body, nếu không có prompt thì sẽ sử dụng prompt mặc định
   const { chatHistory, message } = req.body;
   const prompt = message|| "What is the next total solar eclipse in the US?";
-    console.log(prompt)
+  console.log("prompt",prompt)
   const payload = {
     contents: prompt,
     config: {
