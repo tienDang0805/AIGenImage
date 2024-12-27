@@ -1,4 +1,5 @@
 import os
+import json
 from google import genai
 from google.genai.types import Tool, GenerateContentConfig, GoogleSearch
 from flask import Flask, request, jsonify
@@ -39,15 +40,28 @@ def gpt_chat():
             )
         )
 
+        # Ghi log kết quả đầy đủ để kiểm tra
+        print("Raw Response: ", response)
+        print("Candidates: ", response.candidates)
+
         # Trích xuất nội dung phản hồi
         generated_text = response.candidates[0].content.parts[0].text
+
+        # Xử lý grounding_metadata để tránh lỗi JSON serializable
         grounding_metadata = response.candidates[0].grounding_metadata
+        grounding_metadata_dict = None
+        if grounding_metadata:
+            try:
+                grounding_metadata_dict = json.loads(grounding_metadata.to_json())
+            except Exception as e:
+                print(f"Failed to parse grounding_metadata: {e}")
 
         # Trả về kết quả dưới dạng JSON
         return jsonify({
             'generatedText': generated_text,
-            'groundingMetadata': grounding_metadata or None
+            'groundingMetadata': grounding_metadata_dict
         })
+
     except Exception as e:
         print(f"Error calling Google Generative AI API: {e}")
         return jsonify({'error': 'Failed to generate content'}), 500
