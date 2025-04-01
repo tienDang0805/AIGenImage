@@ -1,5 +1,5 @@
 import os
-from google import genai
+import google.generativeai as genai
 from google.genai.types import Tool, GenerateContentConfig, GoogleSearch
 from flask import Flask, request, jsonify
 
